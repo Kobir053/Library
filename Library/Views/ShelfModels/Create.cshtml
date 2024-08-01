@@ -1,0 +1,55 @@
+﻿@model Library.ViewModels.AddShelfViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+@if(ViewData["message"] != null)
+{
+    <script>
+        alert("@ViewData["message"]");
+    </script>
+}
+
+<h4>Create Shelf</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create" enctype="multipart/form-data">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Shelf.Height" class="control-label"></label>
+                <input asp-for="Shelf.Height" class="form-control" />
+                <span asp-validation-for="Shelf.Height" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Shelf.Width" class="control-label"></label>
+                <input asp-for="Shelf.Width" class="form-control" />
+                <span asp-validation-for="Shelf.Width" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CategoryName" class="control-label"></label>
+                <select asp-for="CategoryName" class="form-control" asp-items="ViewBag.CategoryName"></select>
+            </div>
+            <div class="form-group" hidden="hidden">
+                <label asp-for="CategoryId" class="control-label"></label>
+                <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index" style="color: black">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" style="margin-top: 10px" fill="currentColor" class="bi bi-arrow-left-square-fill" viewBox="0 0 16 16">
+            <path d="M16 14a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2zm-4.5-6.5H5.707l2.147-2.146a.5.5 0 1 0-.708-.708l-3 3a.5.5 0 0 0 0 .708l3 3a.5.5 0 0 0 .708-.708L5.707 8.5H11.5a.5.5 0 0 0 0-1" />
+        </svg>
+    </a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
