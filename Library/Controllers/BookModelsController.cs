@@ -126,57 +126,89 @@ namespace Library.Controllers
         }
 
         // GET: BookModels/Edit/5
-        //public async Task<IActionResult> Edit(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        //    var bookModel = await _context.BookModel.FindAsync(id);
-        //    if (bookModel == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    ViewData["ShelfId"] = new SelectList(_context.ShelfModel, "Id", "Id", bookModel.ShelfId);
-        //    return View(bookModel);
-        //}
+            var bookModel = await _context.BookModel.FindAsync(id);
+            var bookViewModel = new AddBookViewModel { Book = bookModel };
+            if (bookModel == null)
+            {
+                return NotFound();
+            }
+            //ViewData["Id"] = new SelectList(_context.BookModel, "Id", "Id", bookViewModel.Book.Id);
+            return View(bookViewModel);
+        }
 
-        //// POST: BookModels/Edit/5
-        //// To protect from overposting attacks, enable the specific properties you want to bind to.
-        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, [Bind("Id,BookName,Height,Width,ShelfId")] BookModel bookModel)
-        //{
-        //    if (id != bookModel.Id)
-        //    {
-        //        return NotFound();
-        //    }
+        // POST: BookModels/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, AddBookViewModel bookModel)
+        {
+            if (id != bookModel.Book.Id)
+            {
+                return NotFound();
+            }
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            _context.Update(bookModel);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!BookModelExists(bookModel.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    ViewData["ShelfId"] = new SelectList(_context.ShelfModel, "Id", "Id", bookModel.ShelfId);
-        //    return View(bookModel);
-        //}
+            ModelState.Remove(nameof(bookModel.CategoryName));
+
+            if (ModelState.IsValid)
+            {
+                var myShelf = await _context.ShelfModel.AsNoTracking().FirstOrDefaultAsync(s => s.Id == bookModel.Book.ShelfId);
+                var previousBookData = await _context.BookModel.AsNoTracking().FirstOrDefaultAsync(b => b.Id == bookModel.Book.Id);
+                if (myShelf == null || previousBookData == null)
+                {
+                    return NotFound();
+                }
+                var totalWidthInShelf = await _context.BookModel
+                        .Where(b => b.ShelfId == myShelf.Id)
+                        .SumAsync(b => b.Width);
+                if (myShelf.Height < bookModel.Book.Height && myShelf.Width < totalWidthInShelf + bookModel.Book.Width - previousBookData.Width)
+                {
+                    ViewData["message"] = "cannot update the book due too over height and width in shelf";
+                    ViewData["ShelfId"] = new SelectList(_context.ShelfModel, "Id", "Id", bookModel.Book.ShelfId);
+                    return View(bookModel);
+                }
+                else if (myShelf.Width < totalWidthInShelf + bookModel.Book.Width - previousBookData.Width)
+                {
+                    ViewData["message"] = "cannot update the book due too over width in shelf";
+                    ViewData["ShelfId"] = new SelectList(_context.ShelfModel, "Id", "Id", bookModel.Book.ShelfId);
+                    return View(bookModel);
+                }
+                else if(myShelf.Height < bookModel.Book.Height)
+                {
+                    ViewData["message"] = "cannot update the book due too over height in shelf";
+                    ViewData["ShelfId"] = new SelectList(_context.ShelfModel, "Id", "Id", bookModel.Book.ShelfId);
+                    return View(bookModel);
+                }
+                previousBookData = null;
+
+                try
+                {
+                _context.Entry(bookModel.Book).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!BookModelExists(bookModel.Book.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["ShelfId"] = new SelectList(_context.ShelfModel, "Id", "Id", bookModel.Book.ShelfId);
+            return View(bookModel);
+        }
 
         // GET: BookModels/Delete/5
         public async Task<IActionResult> Delete(int? id)

@@ -80,57 +80,90 @@ namespace Library.Controllers
         }
 
         // GET: ShelfModels/Edit/5
-        //public async Task<IActionResult> Edit(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
+        public async Task<IActionResult> Edit(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        //    var shelfModel = await _context.ShelfModel.FindAsync(id);
-        //    if (shelfModel == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    ViewData["CategoryId"] = new SelectList(_context.CategoryModel, "Id", "Id", shelfModel.CategoryId);
-        //    return View(shelfModel);
-        //}
+            var shelfModel = await _context.ShelfModel.FindAsync(id);
+            if (shelfModel == null)
+            {
+                return NotFound();
+            }
+            ViewData["CategoryId"] = new SelectList(_context.CategoryModel, "Id", "Id", shelfModel.CategoryId);
+            return View(shelfModel);
+        }
 
-        //// POST: ShelfModels/Edit/5
-        //// To protect from overposting attacks, enable the specific properties you want to bind to.
-        //// For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Edit(int id, [Bind("Id,Height,Width,CategoryId")] ShelfModel shelfModel)
-        //{
-        //    if (id != shelfModel.Id)
-        //    {
-        //        return NotFound();
-        //    }
+        // POST: ShelfModels/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Height,Width,CategoryId")] ShelfModel shelfModel)
+        {
+            if (id != shelfModel.Id)
+            {
+                return NotFound();
+            }
 
-        //    if (ModelState.IsValid)
-        //    {
-        //        try
-        //        {
-        //            _context.Update(shelfModel);
-        //            await _context.SaveChangesAsync();
-        //        }
-        //        catch (DbUpdateConcurrencyException)
-        //        {
-        //            if (!ShelfModelExists(shelfModel.Id))
-        //            {
-        //                return NotFound();
-        //            }
-        //            else
-        //            {
-        //                throw;
-        //            }
-        //        }
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    ViewData["CategoryId"] = new SelectList(_context.CategoryModel, "Id", "Id", shelfModel.CategoryId);
-        //    return View(shelfModel);
-        //}
+            if (ModelState.IsValid)
+            {
+                var bookList = _context.BookModel
+                        .Select(b => b)
+                        .Where(b => b.ShelfId == id)
+                        .ToList();
+                int maxHeight = 0;
+                int sumOfWidth = 0;
+                foreach (var book in bookList)
+                {
+                    sumOfWidth += book.Width;
+                    if (book.Height > maxHeight)
+                        maxHeight = book.Height;
+                }
+                bool isHeightValid = maxHeight <= shelfModel.Height;
+                bool isWidthValid = sumOfWidth <= shelfModel.Width;
+                if(!isHeightValid && !isWidthValid)
+                {
+                    ViewData["message"] = "you cannot update the height and the width because of your books";
+                    ViewData["CategoryId"] = new SelectList(_context.CategoryModel, "Id", "Id", shelfModel.CategoryId);
+                    return View(shelfModel);
+                }
+                else if (!isHeightValid)
+                {
+                    ViewData["message"] = "you cannot update the height because of your books";
+                    ViewData["CategoryId"] = new SelectList(_context.CategoryModel, "Id", "Id", shelfModel.CategoryId);
+                    return View(shelfModel);
+                }
+                else if (!isWidthValid)
+                {
+                    ViewData["message"] = "you cannott update the width because of your books";
+                    ViewData["CategoryId"] = new SelectList(_context.CategoryModel, "Id", "Id", shelfModel.CategoryId);
+                    return View(shelfModel);
+                }
+
+                try
+                {
+                    _context.Update(shelfModel);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ShelfModelExists(shelfModel.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            ViewData["CategoryId"] = new SelectList(_context.CategoryModel, "Id", "Id", shelfModel.CategoryId);
+            return View(shelfModel);
+        }
 
         // GET: ShelfModels/Delete/5
         public async Task<IActionResult> Delete(int? id)

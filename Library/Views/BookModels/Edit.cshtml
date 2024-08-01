@@ -1,4 +1,4 @@
-﻿@model Library.Models.BookModel
+﻿@model Library.ViewModels.AddBookViewModel
 
 @{
     ViewData["Title"] = "Edit";
@@ -10,26 +10,27 @@
     <div class="col-md-4">
         <form asp-action="Edit">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Book.Id" />
             <div class="form-group">
-                <label asp-for="BookName" class="control-label"></label>
-                <input asp-for="BookName" class="form-control" />
-                <span asp-validation-for="BookName" class="text-danger"></span>
+                <label asp-for="Book.BookName" class="control-label"></label>
+                <input asp-for="Book.BookName" class="form-control" />
+                <span asp-validation-for="Book.BookName" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Height" class="control-label"></label>
-                <input asp-for="Height" class="form-control" />
-                <span asp-validation-for="Height" class="text-danger"></span>
+                <label asp-for="Book.Height" class="control-label"></label>
+                <input asp-for="Book.Height" class="form-control" />
+                <span asp-validation-for="Book.Height" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Width" class="control-label"></label>
-                <input asp-for="Width" class="form-control" />
-                <span asp-validation-for="Width" class="text-danger"></span>
+                <label asp-for="Book.Width" class="control-label"></label>
+                <input asp-for="Book.Width" class="form-control" />
+                <span asp-validation-for="Book.Width" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="ShelfId" class="control-label"></label>
-                <select asp-for="ShelfId" class="form-control" asp-items="ViewBag.ShelfId" disabled></select>
-                <span asp-validation-for="ShelfId" class="text-danger"></span>
+                <label asp-for="Book.ShelfId" class="control-label"></label>
+                <input asp-for="Book.ShelfId" class="form-control" readonly/>
+                @* <select asp-for="Book.ShelfId" class="form-control" asp-items="Book.ShelfId" disabled></select> *@
+                <span asp-validation-for="Book.ShelfId" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
@@ -45,6 +46,13 @@
         </svg>
     </a>
 </div>
+
+@if(ViewData["message"] != null)
+{
+    <script>
+        alert("@ViewData["message"]");
+    </script>
+}
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
